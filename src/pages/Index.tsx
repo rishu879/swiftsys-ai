@@ -1,13 +1,26 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { Helmet } from "react-helmet-async";
+import Navbar from "@/components/Navbar";
+import HeroSection from "@/components/HeroSection";
+import Dashboard from "@/components/Dashboard";
+import Footer from "@/components/Footer";
 
 const Index = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
-    </div>
+    <>
+      <Helmet>
+        <title>SysOpt - AI-Enhanced System Call Optimization</title>
+        <meta
+          name="description"
+          content="AI-powered system call optimization for low-latency operating systems. Eco-friendly, high-performance, and universally accessible computing."
+        />
+      </Helmet>
+      <main className="min-h-screen bg-background">
+        <Navbar />
+        <HeroSection />
+        <Dashboard />
+        <Footer />
+      </main>
+    </>
   );
 };
 
