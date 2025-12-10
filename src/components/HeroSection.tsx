@@ -1,7 +1,25 @@
 import { Cpu, Zap, Leaf, Activity } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 
 const HeroSection = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const handleStartOptimization = () => {
+    if (user) {
+      // Scroll to dashboard
+      document.getElementById('metrics')?.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      navigate('/auth');
+    }
+  };
+
+  const handleViewAnalytics = () => {
+    document.getElementById('metrics')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Animated background */}
@@ -53,11 +71,11 @@ const HeroSection = () => {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16 animate-fade-in" style={{ animationDelay: "0.3s" }}>
-            <Button size="lg" className="box-glow font-semibold">
+            <Button size="lg" className="box-glow font-semibold" onClick={handleStartOptimization}>
               <Zap className="w-5 h-5 mr-2" />
-              Start Optimization
+              {user ? "Start Optimization" : "Get Started Free"}
             </Button>
-            <Button size="lg" variant="outline" className="border-primary/50 hover:bg-primary/10">
+            <Button size="lg" variant="outline" className="border-primary/50 hover:bg-primary/10" onClick={handleViewAnalytics}>
               <Activity className="w-5 h-5 mr-2" />
               View Analytics
             </Button>

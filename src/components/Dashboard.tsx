@@ -7,7 +7,7 @@ import LiveTerminal from "./LiveTerminal";
 
 const Dashboard = () => {
   return (
-    <section className="py-16 px-6">
+    <section id="metrics" className="py-16 px-6">
       <div className="container mx-auto">
         {/* Section header */}
         <div className="text-center mb-12">
@@ -76,9 +76,11 @@ const Dashboard = () => {
           </div>
 
           {/* Right column - AI and Eco */}
-          <div className="space-y-6">
+          <div id="recommendations" className="space-y-6">
             <AIRecommendations />
-            <EcoMetrics />
+            <div id="eco">
+              <EcoMetrics />
+            </div>
           </div>
         </div>
       </div>

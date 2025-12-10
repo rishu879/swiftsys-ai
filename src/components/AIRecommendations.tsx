@@ -1,9 +1,21 @@
-import { useState, useEffect } from "react";
-import { Brain, CheckCircle, AlertTriangle, ArrowRight, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { Brain, CheckCircle, AlertTriangle, ArrowRight, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
-const recommendations = [
+interface Recommendation {
+  id: number;
+  title: string;
+  description: string;
+  impact: "high" | "medium" | "low";
+  energySaving: string;
+  status: "pending" | "applied";
+}
+
+const initialRecommendations: Recommendation[] = [
   {
     id: 1,
     title: "Optimize read() syscall batching",
@@ -39,20 +51,80 @@ const recommendations = [
 ];
 
 const AIRecommendations = () => {
-  const [items, setItems] = useState(recommendations);
+  const [items, setItems] = useState<Recommendation[]>(initialRecommendations);
   const [analyzing, setAnalyzing] = useState(false);
+  const [applying, setApplying] = useState<number | null>(null);
+  const { user } = useAuth();
+  const { toast } = useToast();
 
-  const handleApply = (id: number) => {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, status: "applied" } : item
-      )
-    );
+  const handleApply = async (id: number) => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to apply optimizations.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setApplying(id);
+    
+    try {
+      // Log the optimization to the database
+      const { error } = await supabase.from("system_logs").insert({
+        user_id: user.id,
+        log_type: "optimization_applied",
+        message: `Applied optimization: ${items.find(i => i.id === id)?.title}`,
+        metadata: { recommendation_id: id }
+      });
+
+      if (error) throw error;
+
+      setItems((prev) =>
+        prev.map((item) =>
+          item.id === id ? { ...item, status: "applied" as const } : item
+        )
+      );
+
+      toast({
+        title: "Optimization Applied",
+        description: "The system optimization has been successfully applied.",
+      });
+    } catch (error) {
+      console.error("Error applying optimization:", error);
+      toast({
+        title: "Error",
+        description: "Failed to apply optimization. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setApplying(null);
+    }
   };
 
-  const runAnalysis = () => {
+  const runAnalysis = async () => {
     setAnalyzing(true);
-    setTimeout(() => setAnalyzing(false), 2000);
+    
+    // Simulate AI analysis
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Add a new recommendation
+    const newRec: Recommendation = {
+      id: Date.now(),
+      title: "Optimize epoll() event handling",
+      description: "Detected suboptimal event batching. Improved polling could reduce CPU cycles by 22%.",
+      impact: "high",
+      energySaving: "10%",
+      status: "pending",
+    };
+    
+    setItems(prev => [newRec, ...prev]);
+    setAnalyzing(false);
+    
+    toast({
+      title: "Analysis Complete",
+      description: "Found 1 new optimization opportunity.",
+    });
   };
 
   return (
@@ -76,7 +148,7 @@ const AIRecommendations = () => {
         >
           {analyzing ? (
             <>
-              <Sparkles className="w-4 h-4 mr-2 animate-spin" />
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               Analyzing...
             </>
           ) : (
@@ -88,7 +160,7 @@ const AIRecommendations = () => {
         </Button>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-3 max-h-96 overflow-y-auto">
         {items.map((item) => (
           <div
             key={item.id}
@@ -130,10 +202,17 @@ const AIRecommendations = () => {
                 <Button
                   size="sm"
                   onClick={() => handleApply(item.id)}
+                  disabled={applying === item.id}
                   className="ml-4 h-8"
                 >
-                  Apply
-                  <ArrowRight className="w-3 h-3 ml-1" />
+                  {applying === item.id ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <>
+                      Apply
+                      <ArrowRight className="w-3 h-3 ml-1" />
+                    </>
+                  )}
                 </Button>
               )}
             </div>
